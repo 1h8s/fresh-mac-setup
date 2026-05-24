@@ -37,35 +37,28 @@ chmod +x setup_mac.sh
 ## Что настраивает `setup_mac.sh`
 
 **Базовая система**
-
 - Xcode Command Line Tools, Homebrew (с правильным путём для Apple Silicon и Intel)
 - JetBrains Mono Nerd Font — шрифт с глифами для иконок в терминале и Neovim
 
 **CLI-инструменты**
-
 - База: `git`, `gh`, `tmux`, `btop`, `neovim`, `wget`, `curl`, `jq`
 - Современные альтернативы: `ripgrep`, `fd`, `eza`, `bat`, `fzf`, `zoxide`
 - SRE-набор: `kubectl`, `k9s`, `kubectx`, `helm`, `stern`
 
 **Языки и рантаймы**
-
 - `go`, `python`, `nvm` (Node ставится через nvm, чтобы не конфликтовать)
 
 **Swift** (по выбору)
-
 - `swiftlint`, `swiftformat`, `xcbeautify`
 
 **Docker** (по выбору)
-
 - Colima + Docker CLI (лёгкий, без GUI) или Docker Desktop
 
 **Терминал**
-
 - Oh My Zsh + Powerlevel10k, плагины автодополнения и подсветки
 - Современные алиасы (`ls` → eza, `cat` → bat и т.д.), интеграция zoxide и fzf
 
 **Безопасность и Git**
-
 - SSH-ключ ed25519 с добавлением в Keychain
 - Подпись коммитов через SSH (`allowed_signers` настраивается автоматически — без него `git log --show-signature` ругается)
 - Touch ID для `sudo` в терминале (через `sudo_local`, переживает обновления macOS; для tmux подключается `pam-reattach`)
@@ -75,7 +68,6 @@ chmod +x setup_mac.sh
 iTerm2, VS Code, Spotify, Rectangle, Google Chrome, Raycast, Stats, Telegram, Maccy, The Unarchiver, MonitorControl, DockDoor, Caffeine, AppCleaner, Bruno — каждое можно включить или выключить.
 
 **Системные твики macOS**
-
 - Finder: показ скрытых файлов, расширений, путь-бар, список по умолчанию
 - Отключение автозамены текста, быстрый повтор клавиш, мгновенное автоскрытие Dock
 - Скриншоты в PNG без тени, сохранение в `~/Pictures/Screenshots`
@@ -127,15 +119,14 @@ iTerm2, VS Code, Spotify, Rectangle, Google Chrome, Raycast, Stats, Telegram, Ma
 
 **Deck** (менеджер буфера обмена, по выбору) ставится из стороннего tap и не нотаризован Apple, поэтому при первом запуске macOS его заблокирует — нужно один раз нажать «Open Anyway» в System Settings → Privacy & Security. Карантин снимается только для него, не глобально. После установки стоит выключить авто-выгрузку диагностики; AI-функции отправляют буфер внешним провайдерам, так что при работе с секретами лучше использовать локальную модель через Ollama.
 
-**Что осталось руками после setup:**
-
+**Туда, что осталось руками после setup:**
 - В iTerm2 выбрать шрифт JetBrainsMono Nerd Font
 - Пройти мастер настройки Powerlevel10k (или `p10k configure`)
 - Docker Desktop при выборе — запустить один раз из `/Applications`
 
 ## Совместимость
 
-Apple Silicon. Написано с учётом того, что macOS из коробки идёт с bash 3.2 — скрипты работают на нём без установки нового bash.
+Apple Silicon и Intel. Написано с учётом того, что macOS из коробки идёт с bash 3.2 — скрипты работают на нём без установки нового bash.
 
 ## Лицензия
 
