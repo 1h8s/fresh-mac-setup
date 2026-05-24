@@ -164,8 +164,8 @@ fi
 # ============================================================================
 
 # --- Список GUI-приложений: имя | brew cask | по умолчанию(on/off) ---
-APP_NAMES=(  "iTerm2"  "Visual Studio Code" "Spotify" "Rectangle" "Google Chrome" "Raycast" "Stats" "Telegram" "Maccy" "The Unarchiver" "MonitorControl" "DockDoor" "Caffeine" "AppCleaner" "Bruno" )
-APP_CASKS=(  "iterm2"  "visual-studio-code" "spotify" "rectangle"  "google-chrome"  "raycast"  "stats"  "telegram" "maccy" "the-unarchiver" "monitorcontrol" "dockdoor" "domzilla-caffeine" "appcleaner" "bruno" )
+APP_NAMES=(  "iTerm2"  "Visual Studio Code" "Spotify" "Rectangle" "Google Chrome" "Raycast" "Stats" "Telegram" "Maccy" "The Unarchiver" "MonitorControl" "DockDoor" "Caffeine" "AppCleaner" "Bruno" "Obsidian" )
+APP_CASKS=(  "iterm2"  "visual-studio-code" "spotify" "rectangle"  "google-chrome"  "raycast"  "stats"  "telegram" "maccy" "the-unarchiver" "monitorcontrol" "dockdoor" "domzilla-caffeine" "appcleaner" "bruno" "obsidian" )
 APP_DESC=(
   "продвинутый терминал — замена встроенному Terminal"
   "редактор кода от Microsoft"
@@ -182,8 +182,9 @@ APP_DESC=(
   "не даёт маку уснуть — Caffeine от Domzilla (caffeine-app.net), поддержка свежих macOS"
   "удаляет приложения вместе со всеми хвостами"
   "локальный REST/API-клиент, опенсорс-альтернатива Postman"
+  "заметки и knowledge base на локальных Markdown-файлах"
 )
-APP_DEFAULT=("on"      "on"                 "on"      "on"         "on"             "on"       "off"    "off"      "off"   "on"             "on"             "off"      "on"       "on"         "off"   )
+APP_DEFAULT=("on"      "on"                 "on"      "on"         "on"             "on"       "off"    "off"      "off"   "on"             "on"             "off"      "on"       "on"         "off"   "on"       )
 
 # Скопируем дефолты в рабочий массив выбора
 APP_PICK=("${APP_DEFAULT[@]}")
@@ -215,6 +216,22 @@ SWIFT_CHOICE=$((SELECTED_INDEX+1))
 DOCKER_OPTS=("Colima + Docker CLI (лёгкий, без GUI, ~400MB RAM)" "Docker Desktop (GUI — твой выбор)" "Не ставить Docker")
 singleselect DOCKER_OPTS "DOCKER / КОНТЕЙНЕРЫ"
 DOCKER_CHOICE=$((SELECTED_INDEX+1))
+
+# --- Меню удаления раздуто-дефолтных приложений Apple ---
+# ТОЛЬКО приложения из App Store (GarageBand/iMovie/iWork) — они в обычном
+# /Applications и удаляются безопасно. Системные (Safari/Mail/Photos) на
+# signed system volume НЕ трогаются — их нельзя удалить даже с выключенным SIP.
+BLOAT_NAMES=("GarageBand" "iMovie" "Pages" "Numbers" "Keynote")
+BLOAT_PATHS=("/Applications/GarageBand.app" "/Applications/iMovie.app" "/Applications/Pages.app" "/Applications/Numbers.app" "/Applications/Keynote.app")
+BLOAT_DESC=("аудиостудия (+неск. ГБ звуков)" "видеоредактор" "текстовый редактор" "таблицы" "презентации")
+# По умолчанию ничего не выбрано — чтобы не снести случайно нужное
+BLOAT_PICK=(off off off off off)
+clear
+printf "${BOLD}${CYAN}Удаление встроенных приложений Apple${RESET}\n\n"
+printf "  ${DIM}Только приложения из App Store — удаляются безопасно, ставятся заново${RESET}\n"
+printf "  ${DIM}бесплатно из App Store. Системные (Safari/Mail/Photos) не трогаются.${RESET}\n\n"
+sleep 2
+multiselect BLOAT_NAMES BLOAT_PICK BLOAT_DESC "УДАЛИТЬ ВСТРОЕННЫЕ ПРИЛОЖЕНИЯ?  (по умолчанию — ничего)"
 
 clear
 ok "Конфигурация выбрана. Поехали — дальше без вопросов (кроме GitHub-ключа)."
@@ -505,6 +522,28 @@ for i in "${!APP_CASKS[@]}"; do
   fi
 done
 $ANY_APP || skip "Приложения не выбраны"
+
+# --- Удаление выбранных встроенных приложений Apple ---
+ANY_BLOAT=false
+for i in "${!BLOAT_PATHS[@]}"; do
+  if [[ "${BLOAT_PICK[$i]}" == "on" ]]; then
+    ANY_BLOAT=true
+    if [[ -d "${BLOAT_PATHS[$i]}" ]]; then
+      sudo rm -rf "${BLOAT_PATHS[$i]}" && ok "удалён ${BLOAT_NAMES[$i]}" || warn "${BLOAT_NAMES[$i]} — не удалось удалить"
+    else
+      skip "${BLOAT_NAMES[$i]} (не установлен)"
+    fi
+  fi
+done
+if $ANY_BLOAT; then
+  # GarageBand тащит за собой тяжёлую библиотеку звуков — чистим, если удаляли его
+  if [[ "${BLOAT_PICK[0]}" == "on" && -d "/Library/Application Support/GarageBand" ]]; then
+    sudo rm -rf "/Library/Application Support/GarageBand" 2>/dev/null && ok "очищены звуки GarageBand"
+  fi
+  if [[ "${BLOAT_PICK[0]}" == "on" && -d "/Library/Audio/Apple Loops" ]]; then
+    sudo rm -rf "/Library/Audio/Apple Loops" 2>/dev/null && ok "очищены Apple Loops"
+  fi
+fi
 
 # --- Deck (изолированный no-quarantine, только для него) ---
 if [[ "$DECK_CHOICE" == "1" ]]; then
