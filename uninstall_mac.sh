@@ -147,7 +147,7 @@ if picked 0; then
   step "Удаление GUI-приложений"
   for c in iterm2 visual-studio-code spotify rectangle google-chrome raycast \
            stats telegram maccy the-unarchiver monitorcontrol dockdoor \
-           appcleaner bruno; do
+           appcleaner bruno obsidian; do
     rm_cask "$c"
   done
 fi
@@ -321,6 +321,39 @@ if [[ -f "$HOME/Developer/README.md" ]]; then
     rm -f "$HOME/Developer/README.md" && ok "README удалён"
     rmdir "$HOME/Developer" 2>/dev/null && ok "~/Developer удалена (была пустой)" || skip "~/Developer оставлена (есть проекты)"
   else skip "README оставлен"; fi
+fi
+
+# ============================================================================
+#  Восстановление удалённых встроенных приложений Apple (через App Store)
+# ============================================================================
+step "Восстановление встроенных приложений Apple"
+# Системные приложения нельзя было удалить, так что восстанавливаем только
+# те, что из App Store (GarageBand/iMovie/iWork). Ставятся через mas по их ID.
+BLOAT_RESTORE_NAMES=("GarageBand" "iMovie" "Pages" "Numbers" "Keynote")
+BLOAT_RESTORE_IDS=("682658836" "408981434" "409201541" "409203825" "409183694")
+NEED_RESTORE=false
+for i in "${!BLOAT_RESTORE_NAMES[@]}"; do
+  [[ ! -d "/Applications/${BLOAT_RESTORE_NAMES[$i]}.app" ]] && NEED_RESTORE=true
+done
+if $NEED_RESTORE; then
+  if confirm "Восстановить удалённые приложения Apple из App Store?"; then
+    if ! command -v mas &>/dev/null; then
+      brew install mas >/dev/null 2>&1 && ok "установлен mas (App Store CLI)" || warn "не удалось поставить mas"
+    fi
+    if command -v mas &>/dev/null; then
+      for i in "${!BLOAT_RESTORE_NAMES[@]}"; do
+        if [[ ! -d "/Applications/${BLOAT_RESTORE_NAMES[$i]}.app" ]]; then
+          mas install "${BLOAT_RESTORE_IDS[$i]}" >/dev/null 2>&1 \
+            && ok "восстановлен ${BLOAT_RESTORE_NAMES[$i]}" \
+            || warn "${BLOAT_RESTORE_NAMES[$i]} — поставь вручную из App Store (нужен вход в Apple ID)"
+        fi
+      done
+    fi
+  else
+    skip "восстановление пропущено (можно поставить вручную из App Store)"
+  fi
+else
+  skip "все приложения на месте — восстанавливать нечего"
 fi
 
 # ============================================================================
